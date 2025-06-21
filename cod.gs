@@ -82,7 +82,7 @@ function fetchShopifyOrders() {
             const row = [
               String(order.id),
               order.name,
-              new Date(order.created_at).toLocaleString(), // Форматування дати
+              formatDate(new Date(order.created_at)), // Форматування дати
               order.financial_status,
               // ПОЛІ PII (Персональні дані):
               // Зверніть увагу, що ці поля (ім'я, email, телефон) будуть порожніми
@@ -97,8 +97,8 @@ function fetchShopifyOrders() {
               `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/orders/${order.id}`, // URL замовлення в адмін-панелі Shopify
               productsDescription,
               "Нове", // Початковий статус виготовлення
-              "", // Вартість Товарів (для ручного заповнення або майбутньої автоматизації)
-              "", // Вартість Доставки (для ручного заповнення або майбутньої автоматизації)
+              parseFloat(order.subtotal_price) || 0, // Вартість Товарів
+              order.shipping_lines && order.shipping_lines.length > 0 ? parseFloat(order.shipping_lines[0].price) : 0, // Вартість Доставки
               ""  // Чистий Прибуток (для ручного заповнення або майбутньої автоматизації)
             ];
             ordersToImport.push(row);
@@ -212,4 +212,12 @@ function setupOrderSyncTrigger() {
 // Допоміжна функція для ручного запуску скрипту (для тестування)
 function runOnce() {
   fetchShopifyOrders();
+}
+
+// Функція для форматування дати у формат дд/мм/рррр
+function formatDate(date) {
+  const day = ('0' + date.getDate()).slice(-2);
+  const month = ('0' + (date.getMonth() + 1)).slice(-2); // Місяці починаються з 0
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
 }
